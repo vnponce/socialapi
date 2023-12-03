@@ -14,7 +14,7 @@ def find_post(post_id: int):
     return post_table.get(post_id)
 
 
-@router.post("/posts", response_model=UserPost)
+@router.post("/posts", response_model=UserPost, status_code=status.HTTP_201_CREATED)
 async def create_post(post: UserPostIn):
     data = post.model_dump()
     last_record_id = len(post_table)
