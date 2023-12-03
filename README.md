@@ -1,6 +1,10 @@
 # socialapi
 Social API exercise  created with FastAPI
 
+Implements: 
+- Models with pydantic
+- Routes with APIRouter from fastapi
+
 ## First steps
 - Install dependencies from `requirement` file
 
