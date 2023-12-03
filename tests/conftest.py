@@ -13,10 +13,11 @@ from routers.post import comment_table, post_table
 def anyio_backend():
     return "asyncio"
 
-@pytest.fixture(autouse=True)
+@pytest.fixture()
 def client() -> Generator:
     yield TestClient(app)
 
+@pytest.fixture(autouse=True)
 async def db() -> Generator:
     post_table.clear()
     comment_table.clear()
