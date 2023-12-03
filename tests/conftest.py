@@ -5,10 +5,10 @@ import pytest
 
 from fastapi.testclient import TestClient
 from httpx import AsyncClient
-from routers.post import comment_table, post_table
 
 os.environ["ENV_STATE"] = "test"  # to run test in "test" mode
 
+from database import database  # noqa: E402 <- avoid linter to sent this line above the "os.envirion"
 from main import app  # noqa: E402 <- avoid linter to sent this line above the "os.envirion"
 
 
@@ -25,9 +25,9 @@ def client() -> Generator:
 
 @pytest.fixture(autouse=True)
 async def db() -> Generator:
-    post_table.clear()
-    comment_table.clear()
-    yield
+    await database.connect()
+    yield  # <- run the test function here
+    await database.disconnect()
 
 
 # Implement httpx to make the requests
