@@ -47,7 +47,7 @@ async def get_post_with_comments(post_id: int):
     }
 
 
-@router.post("/comments", response_model=Comment)
+@router.post("/comments", response_model=Comment, status_code=status.HTTP_201_CREATED)
 async def create_post(comment: CommentIn):
     post = find_post(comment.post_id)
     if not post:
