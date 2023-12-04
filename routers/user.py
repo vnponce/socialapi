@@ -17,4 +17,5 @@ async def register(user: UserIn):
     query = user_table.insert().values(email=user.email, password=user.password)
 
     await database.execute(query)
-    return {"details": "User created."}
+    return {"detail": "User created."}
+
