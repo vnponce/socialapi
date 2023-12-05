@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status
 from models.user import UserIn
 from database import database, user_table
-from security import get_user
+from security import get_password_hash, get_user
 
 router = APIRouter()
 
@@ -13,8 +13,8 @@ async def register(user: UserIn):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="A user with that email already exists"
         )
-    # TODO: store hashed password
-    query = user_table.insert().values(email=user.email, password=user.password)
+    hashed_password = get_password_hash(user.password)
+    query = user_table.insert().values(email=user.email, password=hashed_password)
 
     await database.execute(query)
     return {"detail": "User created."}
