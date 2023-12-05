@@ -1,5 +1,6 @@
 import pytest
 from httpx import AsyncClient
+from fastapi import status
 
 
 async def register_user(async_client: AsyncClient, email: str, password: str):
@@ -24,3 +25,17 @@ async def test_register_user_already_exists(
     )
     assert response.status_code == 400
     assert "already exists" in response.json()["detail"]
+
+
+@pytest.mark.anyio
+async def test_login_user_not_exists(async_client: AsyncClient):
+    response = await async_client.post("/token",
+                                       json={"email": "not-registered-email@test.com", "password": "any-password"})
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+@pytest.mark.anyio
+async def test_login_user(async_client: AsyncClient, registered_user: dict):
+    response = await async_client.post("/token",
+                                       json={"email": registered_user["email"], "password": registered_user["password"]})
+    assert response.status_code == status.HTTP_200_OK
