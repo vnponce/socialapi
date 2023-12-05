@@ -5,7 +5,7 @@ from routers.user import router as user_router
 from database import database
 
 
-# functiono that setup and finish the process when "yield" finish
+# function that setup and finish the process when "yield" finish
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await database.connect()

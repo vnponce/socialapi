@@ -1,9 +1,12 @@
 from typing import List
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Request
 
 from database import comment_table, post_table, database
 from models.post import UserPost, UserPostIn, Comment, CommentIn, UserPostWithComments
+from models.user import User
+# oauth2_scheme reads the Request headers to find the Authorization value "Bearer [token]"
+from security import get_current_user, oauth2_scheme
 
 router = APIRouter()
 
@@ -14,7 +17,9 @@ async def find_post(post_id: int):
 
 
 @router.post("/posts", response_model=UserPost, status_code=status.HTTP_201_CREATED)
-async def create_post(post: UserPostIn):
+async def create_post(post: UserPostIn, request: Request):
+    current_user: User = await get_current_user(await oauth2_scheme(request))  # noqa
+
     data = post.model_dump()
     query = post_table.insert().values(data)
     last_record_id = await database.execute(query)
@@ -46,7 +51,9 @@ async def get_post_with_comments(post_id: int):
 
 
 @router.post("/comments", response_model=Comment, status_code=status.HTTP_201_CREATED)
-async def create_post(comment: CommentIn):
+async def create_post(comment: CommentIn, request: Request):
+    current_user: User = await get_current_user(await oauth2_scheme(request))  # noqa
+
     post = await find_post(comment.post_id)
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found!")
@@ -55,4 +62,3 @@ async def create_post(comment: CommentIn):
     query = comment_table.insert().values(data)
     last_record_id = await database.execute(query)
     return {**data, "id": last_record_id}
-

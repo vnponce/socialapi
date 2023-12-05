@@ -1,6 +1,7 @@
 import datetime
 
 from fastapi import HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, ExpiredSignatureError, JWTError
 from passlib.context import CryptContext
 
@@ -9,6 +10,7 @@ from database import database, user_table
 SECRET_KEY = "SUPER-HARD-KEY-HERE-THIS-IS-TEST-PURPOSE"
 ALGORITHM = "HS256"
 pwd_context = CryptContext(schemes=["bcrypt"])
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 credential_exception = HTTPException(
     status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate credentials"
@@ -20,7 +22,7 @@ def access_token_expire_minutes() -> int:
 
 
 def create_access_token(email: str):
-    expire = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(minutes=30)
+    expire = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(minutes=access_token_expire_minutes())
     jwt_data = {"sub": email, "exp": expire}
     encoded_jwt = jwt.encode(jwt_data, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
