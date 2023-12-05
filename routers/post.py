@@ -1,6 +1,6 @@
-from typing import List
+from typing import List, Annotated
 
-from fastapi import APIRouter, HTTPException, status, Request
+from fastapi import APIRouter, HTTPException, status, Request, Depends
 
 from database import comment_table, post_table, database
 from models.post import UserPost, UserPostIn, Comment, CommentIn, UserPostWithComments
@@ -17,9 +17,7 @@ async def find_post(post_id: int):
 
 
 @router.post("/posts", response_model=UserPost, status_code=status.HTTP_201_CREATED)
-async def create_post(post: UserPostIn, request: Request):
-    current_user: User = await get_current_user(await oauth2_scheme(request))  # noqa
-
+async def create_post(post: UserPostIn, current_user: Annotated[User, Depends(get_current_user)]):
     data = post.model_dump()
     query = post_table.insert().values(data)
     last_record_id = await database.execute(query)
@@ -51,9 +49,7 @@ async def get_post_with_comments(post_id: int):
 
 
 @router.post("/comments", response_model=Comment, status_code=status.HTTP_201_CREATED)
-async def create_post(comment: CommentIn, request: Request):
-    current_user: User = await get_current_user(await oauth2_scheme(request))  # noqa
-
+async def create_post(comment: CommentIn, request: Request, current_user: Annotated[User, Depends(get_current_user)]):
     post = await find_post(comment.post_id)
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found!")
