@@ -1,5 +1,6 @@
 from typing import List, Annotated
 
+import sqlalchemy
 from fastapi import APIRouter, HTTPException, status, Request, Depends
 
 from database import comment_table, post_table, database, like_table
@@ -10,6 +11,12 @@ from security import get_current_user, oauth2_scheme
 
 router = APIRouter()
 
+
+select_post_and_likes = (
+    sqlalchemy.select(post_table, sqlalchemy.func.count(like_table.c.id).label("likes"))
+    .select_from(post_table.outerjoin(like_table))
+    .group_by(post_table.c.id)
+)
 
 async def find_post(post_id: int):
     query = post_table.select().where(post_table.c.id == post_id)
@@ -38,7 +45,8 @@ async def get_comments_on_post(post_id: int):
 
 @router.get("/posts/{post_id}", response_model=UserPostWithComments)
 async def get_post_with_comments(post_id: int):
-    post = await find_post(post_id)
+    query = select_post_and_likes.where(post_table.c.id == post_id)
+    post = await database.fetch_one(query)
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found!")
 
