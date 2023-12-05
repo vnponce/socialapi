@@ -15,7 +15,13 @@ async def create_post(body: str, async_client: AsyncClient, logged_in_token: str
 
 
 async def create_comment(body: str, post_id: int, async_client: AsyncClient, logged_in_token: str) -> dict:
-    response = await async_client.post("/comments", json={"body": body, "post_id": post_id, }, headers=bearer_headers(logged_in_token))
+    response = await async_client.post("/comments", json={"body": body, "post_id": post_id, },
+                                       headers=bearer_headers(logged_in_token))
+    return response.json()
+
+
+async def like_post(post_id: int, async_client: AsyncClient, logged_in_token: str) -> dict:
+    response = await async_client.post("/like", json={"post_id", post_id}, headers=bearer_headers(logged_in_token))
     return response.json()
 
 
@@ -71,12 +77,15 @@ async def test_get_all_post(async_client: AsyncClient, created_post: dict):
 
 
 @pytest.mark.anyio
-async def test_create_comment(async_client: AsyncClient, created_post: dict, registered_user: dict,  logged_in_token: str):
+async def test_create_comment(async_client: AsyncClient, created_post: dict, registered_user: dict,
+                              logged_in_token: str):
     body = "Comment Body"
-    response = await async_client.post("/comments", json={"body": body, "post_id": created_post["id"]}, headers=bearer_headers(logged_in_token))
+    response = await async_client.post("/comments", json={"body": body, "post_id": created_post["id"]},
+                                       headers=bearer_headers(logged_in_token))
 
     assert response.status_code == status.HTTP_201_CREATED
-    assert {"id": 1, "body": body, "post_id": created_post["id"], "user_id": registered_user["id"]}.items() <= response.json().items()
+    assert {"id": 1, "body": body, "post_id": created_post["id"],
+            "user_id": registered_user["id"]}.items() <= response.json().items()
 
 
 @pytest.mark.anyio
@@ -107,3 +116,12 @@ async def test_get_post_with_comments(async_client: AsyncClient, created_post: d
 async def test_get_missing_post_with_comments(async_client: AsyncClient, created_post: dict, created_comment: dict):
     response = await async_client.get("/posts/2")
     assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.anyio
+async def test_like_post(async_client: AsyncClient, created_post: dict, registered_user: dict, logged_in_token: str):
+    response = await async_client.post("/like", json={"post_id": created_post["id"]},
+                                       headers=bearer_headers(logged_in_token))
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert {"id": 1, "post_id": created_post["id"], "user_id": registered_user["id"]}.items() <= response.json().items()
