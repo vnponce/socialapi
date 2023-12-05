@@ -1,7 +1,7 @@
 # socialapi
 >Social API exercise created with FastAPI
 
-![Captura de pantalla 2023-12-05 a la(s) 12.08.32 a.m..png](..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fs7%2F7jbv65r518g78j3nc658bpmm0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_ycRsmE%2FCaptura%20de%20pantalla%202023-12-05%20a%20la%28s%29%2012.08.32%E2%80%AFa.m..png)
+<img width="1135" alt="Captura de pantalla 2023-12-05 a la(s) 12 13 14 a m" src="https://github.com/vnponce/socialapi/assets/11002279/0bb4971c-c954-4331-b9d8-b878ac496bdb">
 
 ## API Features:
 - Register User
