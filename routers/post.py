@@ -1,22 +1,24 @@
+from enum import Enum
 from typing import List, Annotated
 
 import sqlalchemy
 from fastapi import APIRouter, HTTPException, status, Request, Depends
 
 from database import comment_table, post_table, database, like_table
-from models.post import UserPost, UserPostIn, Comment, CommentIn, UserPostWithComments, PostLIkeIn, PostLIke
+from models.post import UserPost, UserPostIn, Comment, CommentIn, UserPostWithComments, PostLIkeIn, PostLIke, \
+    UserPostWithLikes
 from models.user import User
 # oauth2_scheme reads the Request headers to find the Authorization value "Bearer [token]"
 from security import get_current_user, oauth2_scheme
 
 router = APIRouter()
 
-
 select_post_and_likes = (
     sqlalchemy.select(post_table, sqlalchemy.func.count(like_table.c.id).label("likes"))
     .select_from(post_table.outerjoin(like_table))
     .group_by(post_table.c.id)
 )
+
 
 async def find_post(post_id: int):
     query = post_table.select().where(post_table.c.id == post_id)
@@ -31,9 +33,22 @@ async def create_post(post: UserPostIn, current_user: Annotated[User, Depends(ge
     return {**data, "id": last_record_id}
 
 
-@router.get("/posts", response_model=List[UserPost])
-async def get_posts():
-    query = post_table.select()
+class PostSorting(str, Enum):
+    new = "new"
+    old = "old"
+    most_likes = "most_likes"
+
+
+@router.get("/posts", response_model=List[UserPostWithLikes])
+async def get_posts(sorting: PostSorting = PostSorting.new):
+    match sorting:
+        case PostSorting.new:
+            query = select_post_and_likes.order_by(post_table.c.id.desc())
+        case PostSorting.old:
+            query = select_post_and_likes.order_by(post_table.c.id.asc())
+        case PostSorting.most_likes:
+            query = select_post_and_likes.order_by(sqlalchemy.desc("likes"))
+
     return await database.fetch_all(query)
 
 
